@@ -7,7 +7,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const db = require('./db');
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:8080',
+        'https://payroll-system-web.onrender.com' // This is your frontend URL
+    ]
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../frontend')));
