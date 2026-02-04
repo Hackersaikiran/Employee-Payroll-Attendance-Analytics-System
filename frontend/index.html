@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Payroll & Attendance System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Employee Payroll & Attendance Analytics System</h1>
+            <p class="subtitle">SQL-Driven Business Logic | PostgreSQL Backend</p>
+        </header>
+
+        <nav class="navigation">
+            <button class="nav-btn active" data-page="employees">👥 Employees</button>
+            <button class="nav-btn" data-page="attendance">📋 Attendance</button>
+            <button class="nav-btn" data-page="payroll">💰 Payroll</button>
+            <button class="nav-btn" data-page="departments">🏢 Departments</button>
+        </nav>
+
+        <!-- Page: Employees -->
+        <div id="employees-page" class="page active">
+            <div class="page-header">
+                <h2>Employee Management</h2>
+                <button class="btn btn-primary" onclick="showAddEmployeeForm()">+ Add Employee</button>
+            </div>
+
+            <!-- Search Section -->
+            <div class="filter-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="employee_search" placeholder="Search by ID, Name, or Designation..." onkeyup="searchEmployees()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Employee Form -->
+            <div id="add-employee-form" class="form-container hidden">
+                <h3>Add New Employee</h3>
+                <form id="employee-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name">First Name*</label>
+                            <input type="text" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name*</label>
+                            <input type="text" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email*</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone*</label>
+                            <input type="text" id="phone" name="phone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department_id">Department*</label>
+                            <select id="department_id" name="department_id" required>
+                                <option value="">Select Department</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="designation">Designation*</label>
+                            <input type="text" id="designation" name="designation" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="base_salary">Base Salary (₹)*</label>
+                            <input type="number" id="base_salary" name="base_salary" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_of_joining">Date of Joining*</label>
+                            <input type="date" id="date_of_joining" name="date_of_joining" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Save Employee</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideAddEmployeeForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Employees Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Base Salary</th>
+                            <th>Joining Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employees-table-body">
+                        <tr>
+                            <td colspan="8" class="loading">Loading employees...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Page: Attendance -->
+        <div id="attendance-page" class="page">
+            <div class="page-header">
+                <h2>Attendance Management</h2>
+                <button class="btn btn-primary" onclick="showMarkAttendanceForm()">+ Mark Attendance</button>
+            </div>
+
+            <!-- Mark Attendance Form -->
+            <div id="mark-attendance-form" class="form-container hidden">
+                <h3>Mark Attendance</h3>
+                <form id="attendance-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="attendance_employee_id">Employee*</label>
+                            <select id="attendance_employee_id" name="employee_id" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="attendance_date">Date*</label>
+                            <input type="date" id="attendance_date" name="attendance_date" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="status">Status*</label>
+                            <select id="status" name="status" required onchange="toggleTimeFields()">
+                                <option value="">Select Status</option>
+                                <option value="Present">Present</option>
+                                <option value="Late">Late</option>
+                                <option value="Absent">Absent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="check_in_time">Check-In Time</label>
+                            <input type="time" id="check_in_time" name="check_in_time">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="check_out_time">Check-Out Time</label>
+                            <input type="time" id="check_out_time" name="check_out_time">
+                        </div>
+                        <div class="form-group">
+                            <label for="remarks">Remarks</label>
+                            <input type="text" id="remarks" name="remarks">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Mark Attendance</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideMarkAttendanceForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="filter-section">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <input type="text" id="attendance_search" placeholder="Search by ID, Name, or Designation..." onkeyup="searchAttendance()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="filter_month">Month</label>
+                        <select id="filter_month">
+                            <option value="">All</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filter_year">Year</label>
+                        <select id="filter_year">
+                            <option value="">All</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="filterAttendance()">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-table-body">
+                        <tr>
+                            <td colspan="8" class="loading">Loading attendance records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Page: Payroll -->
+        <div id="payroll-page" class="page">
+            <div class="page-header">
+                <h2>Payroll Reports</h2>
+                <button class="btn btn-success" onclick="showGeneratePayrollForm()">Generate Payroll</button>
+            </div>
+
+            <!-- Generate Payroll Form -->
+            <div id="generate-payroll-form" class="form-container hidden">
+                <h3>Generate Monthly Payroll</h3>
+                <form id="payroll-generation-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="payroll_month">Month*</label>
+                            <select id="payroll_month" name="month" required>
+                                <option value="">Select Month</option>
+                                <option value="1">January</option>
+                                <option value="2" selected>February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="payroll_year">Year*</label>
+                            <select id="payroll_year" name="year" required>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Generate Payroll</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideGeneratePayrollForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="filter-section">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <input type="text" id="payroll_search" placeholder="Search by ID, Name, or Designation..." onkeyup="searchPayroll()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="payroll_filter_month">Month</label>
+                        <select id="payroll_filter_month" onchange="filterPayroll()">
+                            <option value="">All</option>
+                            <option value="1">January</option>
+                            <option value="2" selected>February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="payroll_filter_year">Year</label>
+                        <select id="payroll_filter_year" onchange="filterPayroll()">
+                            <option value="">All</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="filterPayroll()">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payroll Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Month/Year</th>
+                            <th>Base Salary</th>
+                            <th>Present Days</th>
+                            <th>Late Days</th>
+                            <th>Absent Days</th>
+                            <th>Total Deduction</th>
+                            <th>Net Salary</th>
+                            <th>Attendance %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payroll-table-body">
+                        <tr>
+                            <td colspan="10" class="loading">Loading payroll reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Page: Departments -->
+        <div id="departments-page" class="page">
+            <div class="page-header">
+                <h2>Departments</h2>
+                <button class="btn btn-primary" onclick="showAddDepartmentForm()">+ Add Department</button>
+            </div>
+
+            <!-- Add Department Form -->
+            <div id="add-department-form" class="form-container hidden">
+                <h3>Add New Department</h3>
+                <form id="department-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department_name">Department Name*</label>
+                            <input type="text" id="department_name" name="department_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Save Department</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideAddDepartmentForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Departments Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Department Name</th>
+                            <th>Location</th>
+                            <th>Employee Count</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="departments-table-body">
+                        <tr>
+                            <td colspan="5" class="loading">Loading departments...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 Employee Payroll & Attendance System | Built with PostgreSQL, Node.js, Express | SQL-First Architecture</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
