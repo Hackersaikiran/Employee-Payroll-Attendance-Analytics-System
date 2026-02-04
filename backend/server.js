@@ -6,12 +6,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const db = require('./db');
+const { initializeDatabase } = require('./init-db');
 
 app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:8080',
-        'https://payroll-system-web.onrender.com' // This is your frontend URL
+        'https://employee-payroll-attendance-analytics.onrender.com' // This is your frontend URL
     ]
 }));
 app.use(express.json());
@@ -276,8 +277,15 @@ app.use((err, req, res, next) => {
 });
 
 // START SERVER
-const server = app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log('✓ Server running on http://localhost:' + PORT);
+    
+    // Initialize database if needed
+    try {
+        await initializeDatabase();
+    } catch (err) {
+        console.error('Database initialization error:', err.message);
+    }
 });
 
 process.on('SIGTERM', async () => {
