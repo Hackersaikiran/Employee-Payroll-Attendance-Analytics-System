@@ -290,7 +290,7 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
 process.on('SIGTERM', async () => {
     server.close(async () => {
-        await db.pool.end();
+        await db.end();
         process.exit(0);
     });
 });
