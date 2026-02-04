@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const db = require('./db');
 const { initializeDatabase } = require('./init-db');
+const { populatePayroll } = require('./populate-payroll');
 
 app.use(cors({
     origin: [
@@ -283,8 +284,9 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
     // Initialize database if needed
     try {
         await initializeDatabase();
+        await populatePayroll();
     } catch (err) {
-        console.error('Database initialization error:', err.message);
+        console.error('Initialization error:', err.message);
     }
 });
 
